@@ -1,15 +1,16 @@
 from typing import Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
+import uuid
 
 
 # Esquemas de solicitud
 class CrearCuentaRequest(BaseModel):
     """Solicitud para crear una nueva cuenta"""
-    perfil_id: str
     email: EmailStr
     password: str
     rol: Optional[str] = "postulante"
+    perfil_id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()))
 
 
 class LoginRequest(BaseModel):
