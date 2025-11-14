@@ -1,5 +1,6 @@
 import os
 from pydantic_settings import BaseSettings
+from urllib.parse import urlparse, urlunparse, parse_qs, urlencode
 
 class Settings(BaseSettings):
     DB_USER: str = os.getenv("DB_USER", "postgres")
@@ -8,10 +9,13 @@ class Settings(BaseSettings):
     DB_PORT: str = os.getenv("DB_PORT", "5432")
     DB_NAME: str = os.getenv("DB_NAME", "postulaciones_db")
     
-    DATABASE_URL: str = os.getenv(
+    _database_url: str = os.getenv(
         "DATABASE_URL", 
         f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     )
+    
+    # Force IPv4 by adding sslmode and other parameters
+    DATABASE_URL: str = f"{_database_url}?sslmode=require" if "supabase.co" in _database_url else _database_url
     
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-for-jwt")
     ALGORITHM: str = "HS256"
