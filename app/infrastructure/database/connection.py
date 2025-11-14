@@ -91,6 +91,8 @@ try:
         pool_recycle=3600,
         connect_args={
             "connect_timeout": 10,
+            "keepalives": 1,
+            "keepalives_idle": 30,
         }
     )
     logger.info("Motor de SQLAlchemy creado exitosamente.")
