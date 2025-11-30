@@ -9,7 +9,7 @@ from app.domain.metrica.repositories import MetricaRepository
 @dataclass
 class ConsultarResumenMetricasQuery(Query):
     """Query para consultar el resumen de métricas de un postulante"""
-    perfil_id: UUID
+    cuenta_id: UUID
 
 
 class ConsultarResumenMetricasHandler(QueryHandler):
@@ -28,14 +28,14 @@ class ConsultarResumenMetricasHandler(QueryHandler):
         de las postulaciones en lugar de recuperarse de registros almacenados previamente.
         """
         # Calcular el agregado de métricas del postulante en tiempo real
-        metrica_aggregate = self.metrica_repository.obtener_por_postulante(query.perfil_id)
+        metrica_aggregate = self.metrica_repository.obtener_por_postulante(query.cuenta_id)
         
         if not metrica_aggregate:
             return None
         
         # Construir respuesta
         return {
-            "perfil_id": str(metrica_aggregate.metrica_registro.perfil_id),
+            "cuenta_id": str(metrica_aggregate.metrica_registro.cuenta_id),
             "total_postulaciones": metrica_aggregate.metrica_registro.total_postulaciones,
             "total_entrevistas": metrica_aggregate.metrica_registro.total_entrevistas,
             "total_exitos": metrica_aggregate.metrica_registro.total_exitos,
@@ -47,7 +47,7 @@ class ConsultarResumenMetricasHandler(QueryHandler):
 @dataclass
 class ListarLogrosQuery(Query):
     """Query para listar los logros de un postulante"""
-    perfil_id: UUID
+    cuenta_id: UUID
 
 
 class ListarLogrosHandler(QueryHandler):
@@ -63,7 +63,7 @@ class ListarLogrosHandler(QueryHandler):
         Maneja la consulta de logros
         """
         # Recuperar el agregado de métricas del postulante
-        metrica_aggregate = self.metrica_repository.obtener_por_postulante(query.perfil_id)
+        metrica_aggregate = self.metrica_repository.obtener_por_postulante(query.cuenta_id)
         
         if not metrica_aggregate:
             return []

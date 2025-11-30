@@ -23,7 +23,7 @@ class PostulacionRepositoryImpl(PostulacionRepository):
             
             # Crear nueva postulación - pasar el valor string del enum
             post_db = PostulacionModel(
-                perfil_id=str(post.candidato_id),
+                cuenta_id=str(post.candidato_id),
                 puesto_id=1,  # Placeholder
                 fecha_postulacion=post.fecha_postulacion,
                 estado=post.estado.valor.value,  # Pasar el .value (string: "pendiente")
@@ -62,7 +62,7 @@ class PostulacionRepositoryImpl(PostulacionRepository):
             
             post = Postulacion(
                 postulacion_id=postulacion_id,
-                candidato_id=UUID(post_db.perfil_id),
+                candidato_id=UUID(post_db.cuenta_id),
                 puesto_id=UUID('00000000-0000-0000-0000-000000000001'),
                 fecha_postulacion=post_db.fecha_postulacion,
                 estado=EstadoPostulacion(post_db.estado),
@@ -91,14 +91,14 @@ class PostulacionRepositoryImpl(PostulacionRepository):
         db = SessionLocal()
         try:
             posts_db = db.query(PostulacionModel).filter(
-                PostulacionModel.perfil_id == str(candidato_id)
+                PostulacionModel.cuenta_id == str(candidato_id)
             ).all()
             
             resultado = []
             for post_db in posts_db:
                 post = Postulacion(
                     postulacion_id=UUID('00000000-0000-0000-0000-000000000001'),
-                    candidato_id=UUID(post_db.perfil_id),
+                    candidato_id=UUID(post_db.cuenta_id),
                     puesto_id=UUID('00000000-0000-0000-0000-000000000001'),
                     fecha_postulacion=post_db.fecha_postulacion,
                     estado=EstadoPostulacion(post_db.estado),

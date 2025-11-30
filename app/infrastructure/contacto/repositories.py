@@ -32,7 +32,7 @@ class ContactoRepositoryImpl(ContactoRepository):
                     id=str(contacto_id),
                     postulacion_id=str(contacto.postulacion_id),
                     empresa_id=str(contacto.empresa_id),
-                    perfil_id=str(contacto.perfil_id),
+                    cuenta_id=str(contacto.cuenta_id),
                     tipo_mensaje=contacto.tipo_mensaje.value,
                     motivo_rechazo=contacto.motivo_rechazo,
                     fecha_hora=contacto.fecha_hora
@@ -82,7 +82,7 @@ class ContactoRepositoryImpl(ContactoRepository):
                 contacto_id=UUID(contacto_db.id),
                 postulacion_id=UUID(contacto_db.postulacion_id),
                 empresa_id=UUID(contacto_db.empresa_id),
-                perfil_id=UUID(contacto_db.perfil_id),
+                cuenta_id=UUID(contacto_db.cuenta_id),
                 tipo_mensaje=contacto_db.tipo_mensaje,
                 motivo_rechazo=contacto_db.motivo_rechazo,
                 fecha_hora=contacto_db.fecha_hora

@@ -10,7 +10,7 @@ class MetricaResumenResponse(BaseModel):
     Esquema para respuesta de resumen de métricas
     Representa métricas calculadas en tiempo real, no almacenadas
     """
-    perfil_id: str
+    cuenta_id: str
     total_postulaciones: int
     total_entrevistas: int
     total_exitos: int

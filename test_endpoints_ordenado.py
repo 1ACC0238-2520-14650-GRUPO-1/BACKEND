@@ -4,12 +4,12 @@ ARCHIVO DE PRUEBA DE ENDPOINTS ORDENADOS
 
 Orden de ejecución respetando dependencias (Foreign Keys):
 
-1. PERFIL - Crear perfil (sin dependencias)
-2. IAM - Crear cuenta (depende de perfil_id)
+
+2. IAM - Crear cuenta 
 3. IAM - Login (necesario para obtener tokens)
 4. PUESTO - Crear puesto (depende de empresa_id - usar un UUID de empresa)
 5. POSTULACION - Crear postulación (depende de candidato_id y puesto_id)
-6. METRICAS - Consultar métricas (depende de perfil_id)
+6. METRICAS - Consultar métricas 
 
 El script ejecuta cada endpoint y valida las respuestas.
 """
@@ -29,7 +29,6 @@ HEADERS = {"Content-Type": "application/json"}
 
 # Almacenar IDs generados para usarlos en requests posteriores
 datos_almacenados = {
-    "perfil_id": None,
     "cuenta_id": None,
     "email": None,
     "access_token": None,
@@ -105,7 +104,7 @@ def hacer_peticion(metodo, endpoint, data=None, headers=None, test_num=0, titulo
 # =====================================================================
 
 def test_1_crear_perfil():
-    """TEST 1: Crear un perfil de postulante"""
+    """TEST 1: Crear un perfil de postulante (ahora usando IAM)"""
     print("\n\n" + "="*80)
     print("INICIANDO TESTS DE ENDPOINTS")
     print("="*80)
@@ -113,58 +112,28 @@ def test_1_crear_perfil():
     email_perfil = f"candidato_{uuid4().hex[:8]}@example.com"
     
     data = {
-        "nombre": "Juan Carlos Pérez",
+        "nombre_completo": "Juan Carlos Pérez",
         "email": email_perfil,
-        "tipo_cuenta": "candidato",
-        "datos_contacto": {
-            "telefono": "+34 612345678",
-            "ciudad": "Madrid",
-            "pais": "España"
-        }
-    }
-    
-    estado, respuesta = hacer_peticion(
-        "POST", 
-        "/perfil",
-        data=data,
-        test_num=1,
-        titulo="Crear Perfil de Postulante"
-    )
-    
-    if estado and estado < 300 and isinstance(respuesta, dict):
-        datos_almacenados["perfil_id"] = respuesta.get("perfil_id") or str(uuid4())
-        print(f"\n✅ Perfil ID almacenado: {datos_almacenados['perfil_id']}")
-        return True
-    
-    return False
-
-def test_2_crear_cuenta():
-    """TEST 2: Crear una cuenta IAM asociada al perfil"""
-    if not datos_almacenados["perfil_id"]:
-        print("\n❌ TEST SALTADO: No hay perfil_id disponible")
-        return False
-    
-    email_cuenta = f"usuario_{uuid4().hex[:8]}@example.com"
-    datos_almacenados["email"] = email_cuenta
-    
-    data = {
-        "perfil_id": datos_almacenados["perfil_id"],
-        "email": email_cuenta,
         "password": "Password123!",
+        "telefono": "+34 612345678",
+        "ciudad": "Madrid",
         "rol": "postulante"
     }
     
     estado, respuesta = hacer_peticion(
-        "POST",
+        "POST", 
         "/iam/registrar",
         data=data,
-        test_num=2,
-        titulo="Crear Cuenta IAM (Registrar)"
+        test_num=1,
+        titulo="Crear Perfil de Postulante (via IAM)"
     )
     
     if estado and estado < 300 and isinstance(respuesta, dict):
-        datos_almacenados["cuenta_id"] = respuesta.get("cuenta_id") or str(uuid4())
-        print(f"\n✅ Cuenta ID almacenado: {datos_almacenados['cuenta_id']}")
+        datos_almacenados["perfil_id"] = respuesta.get("cuenta_id") or str(uuid4())
+        datos_almacenados["cuenta_id"] = respuesta.get("cuenta_id") or datos_almacenados["perfil_id"]
+        datos_almacenados["email"] = respuesta.get("email") or email_perfil
+        print(f"\n✅ Perfil ID almacenado: {datos_almacenados['perfil_id']}")
+        print(f"✅ Cuenta ID almacenado: {datos_almacenados['cuenta_id']}")
         return True
     
     return False
@@ -201,20 +170,7 @@ def test_3_login():
     
     return False
 
-def test_4_obtener_perfil():
-    """TEST 4: Obtener información del perfil creado"""
-    if not datos_almacenados["perfil_id"]:
-        print("\n❌ TEST SALTADO: No hay perfil_id disponible")
-        return False
-    
-    estado, respuesta = hacer_peticion(
-        "GET",
-        f"/perfil/{datos_almacenados['perfil_id']}",
-        test_num=4,
-        titulo="Obtener Perfil por ID"
-    )
-    
-    return estado and estado < 300
+
 
 def test_5_obtener_cuenta():
     """TEST 5: Obtener información de la cuenta creada"""
@@ -251,46 +207,8 @@ def test_6_verificar_token():
     
     return estado and estado < 300
 
-def test_7_crear_perfil_candidato():
-    """TEST 7: Crear perfil extendido de candidato (experiencia, educación, habilidades)"""
-    if not datos_almacenados["perfil_id"]:
-        print("\n❌ TEST SALTADO: No hay perfil_id disponible")
-        return False
+
     
-    data = {
-        "perfil_id": datos_almacenados["perfil_id"],
-        "experiencias": [
-            {
-                "empresa": "TechCorp Inc",
-                "puesto": "Senior Developer",
-                "descripcion": "Desarrollo de aplicaciones backend",
-                "fecha_inicio": (datetime.now() - timedelta(days=730)).isoformat(),
-                "fecha_fin": (datetime.now() - timedelta(days=365)).isoformat(),
-                "es_actual": False
-            }
-        ],
-        "educacion": [
-            {
-                "institucion": "Universidad de Madrid",
-                "titulo": "Grado en Ingeniería Informática",
-                "campo_estudio": "Computer Science",
-                "fecha_inicio": (datetime.now() - timedelta(days=1460)).isoformat(),
-                "fecha_fin": (datetime.now() - timedelta(days=1095)).isoformat()
-            }
-        ],
-        "habilidades": ["Python", "FastAPI", "PostgreSQL", "Docker", "AWS"],
-        "cv_url": "https://example.com/cv/juan_carlos_perez.pdf"
-    }
-    
-    estado, respuesta = hacer_peticion(
-        "POST",
-        "/perfil/candidato",
-        data=data,
-        test_num=7,
-        titulo="Crear Perfil de Candidato (Experiencia, Educación, Habilidades)"
-    )
-    
-    return estado and estado < 300
 
 def test_8_crear_puesto():
     """TEST 8: Crear un puesto de trabajo (requiere empresa_id)"""
@@ -369,12 +287,12 @@ def test_10_listar_puestos():
 
 def test_11_crear_postulacion():
     """TEST 11: Crear una postulación (depende de candidato_id y puesto_id)"""
-    if not datos_almacenados["perfil_id"] or not datos_almacenados["puesto_id"]:
-        print("\n❌ TEST SALTADO: No hay perfil_id o puesto_id disponible")
+    if not datos_almacenados["cuenta_id"] or not datos_almacenados["puesto_id"]:
+        print("\n❌ TEST SALTADO: No hay cuenta_id o puesto_id disponible")
         return False
     
-    # Usar perfil_id como candidato_id (en una app real sería diferente)
-    datos_almacenados["candidato_id"] = datos_almacenados["perfil_id"]
+    # Usar cuenta_id como candidato_id (en una app real sería diferente)
+    datos_almacenados["candidato_id"] = datos_almacenados["cuenta_id"]
     
     data = {
         "candidato_id": datos_almacenados["candidato_id"],
@@ -499,14 +417,14 @@ def test_16_cambiar_estado_puesto():
     return estado and estado < 300
 
 def test_17_obtener_metricas():
-    """TEST 17: Obtener métricas del perfil (depende de perfil_id)"""
-    if not datos_almacenados["perfil_id"]:
-        print("\n❌ TEST SALTADO: No hay perfil_id disponible")
+    """TEST 17: Obtener métricas del cuenta (depende de cuenta_id)"""
+    if not datos_almacenados["cuenta_id"]:
+        print("\n❌ TEST SALTADO: No hay cuenta_id disponible")
         return False
     
     estado, respuesta = hacer_peticion(
         "GET",
-        f"/metricas/resumen/{datos_almacenados['perfil_id']}",
+        f"/metricas/resumen/{datos_almacenados['cuenta_id']}",
         test_num=17,
         titulo="Obtener Resumen de Métricas"
     )
@@ -514,16 +432,16 @@ def test_17_obtener_metricas():
     return estado and estado < 300
 
 def test_18_listar_logros():
-    """TEST 18: Listar logros del perfil"""
-    if not datos_almacenados["perfil_id"]:
-        print("\n❌ TEST SALTADO: No hay perfil_id disponible")
+    """TEST 18: Listar logros del cuenta"""
+    if not datos_almacenados["cuenta_id"]:
+        print("\n❌ TEST SALTADO: No hay cuenta_id disponible")
         return False
     
     estado, respuesta = hacer_peticion(
         "GET",
-        f"/metricas/logros/{datos_almacenados['perfil_id']}",
+        f"/metricas/logros/{datos_almacenados['cuenta_id']}",
         test_num=18,
-        titulo="Listar Logros del Perfil"
+        titulo="Listar Logros del cuenta"
     )
     
     return estado and estado < 300
@@ -564,7 +482,7 @@ def test_20_enviar_feedback():
     data = {
         "postulacion_id": datos_almacenados["postulacion_id"],
         "empresa_id": datos_almacenados["empresa_id"],
-        "perfil_id": datos_almacenados["perfil_id"],
+        "cuenta_id": datos_almacenados["cuenta_id"],
         "tipo_feedback": "comentario",
         "mensaje_texto": "Excelente candidato, continuaremos en contacto.",
         "motivo_rechazo": None
@@ -632,13 +550,10 @@ if __name__ == "__main__":
     
     # Ejecutar todos los tests
     resultados = [
-        ("TEST 1: Crear Perfil", test_1_crear_perfil()),
-        ("TEST 2: Crear Cuenta IAM", test_2_crear_cuenta()),
+        ("TEST 1: Crear Perfil (IAM)", test_1_crear_perfil()),
         ("TEST 3: Login", test_3_login()),
-        ("TEST 4: Obtener Perfil", test_4_obtener_perfil()),
         ("TEST 5: Obtener Cuenta", test_5_obtener_cuenta()),
         ("TEST 6: Verificar Token", test_6_verificar_token()),
-        ("TEST 7: Crear Perfil Candidato", test_7_crear_perfil_candidato()),
         ("TEST 8: Crear Puesto", test_8_crear_puesto()),
         ("TEST 9: Obtener Puesto", test_9_obtener_puesto()),
         ("TEST 10: Listar Puestos", test_10_listar_puestos()),

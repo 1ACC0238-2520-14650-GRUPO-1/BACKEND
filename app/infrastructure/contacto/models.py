@@ -13,7 +13,7 @@ class ContactoPostulacionModel(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid4()))
     postulacion_id = Column(String(36), nullable=False)
     empresa_id = Column(String(36), nullable=False)
-    perfil_id = Column(String(36), nullable=False)
+    cuenta_id = Column(String(36), nullable=False)
     tipo_mensaje = Column(SQLAEnum(TipoMensajeEnum, native_enum=False), nullable=False)
     motivo_rechazo = Column(String(500), nullable=True)
     fecha_hora = Column(DateTime, nullable=False)

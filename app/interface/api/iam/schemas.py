@@ -1,15 +1,25 @@
-from typing import Optional
+from typing import Optional, Dict, Any
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
 
 # Esquemas de solicitud
+class DatosContacto(BaseModel):
+    """Datos de contacto del usuario"""
+    telefono: Optional[str] = None
+    ciudad: Optional[str] = None
+    pais: Optional[str] = None
+
+
 class CrearCuentaRequest(BaseModel):
     """Solicitud para crear una nueva cuenta"""
-    perfil_id: str
+    nombre_completo: str
     email: EmailStr
     password: str
-    rol: Optional[str] = "postulante"
+    carrera: Optional[str] = None
+    telefono: Optional[str] = None
+    ciudad: Optional[str] = None
+    rol: str = "postulante"
 
 
 class LoginRequest(BaseModel):
@@ -49,8 +59,11 @@ class TokenResponse(BaseModel):
 class CuentaResponse(BaseModel):
     """Respuesta con datos de cuenta"""
     cuenta_id: str
-    perfil_id: str
+    nombre_completo: str
     email: str
+    carrera: Optional[str] = None
+    telefono: Optional[str] = None
+    ciudad: Optional[str] = None
     rol: str
     estado: str
     fecha_creacion: datetime
@@ -74,7 +87,5 @@ class MensajeResponse(BaseModel):
 class TokenVerificationResponse(BaseModel):
     """Respuesta de verificación de token"""
     valido: bool
-    sub: Optional[str] = None
-    email: Optional[str] = None
+    cuenta_id: Optional[str] = None
     rol: Optional[str] = None
-    tipo: Optional[str] = None

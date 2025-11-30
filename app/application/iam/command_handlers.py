@@ -13,9 +13,12 @@ from app.infrastructure.iam.security import TokenManager, PasswordManager
 @dataclass
 class CrearCuentaCommand(Command):
     """Comando para crear una nueva cuenta"""
-    perfil_id: UUID
+    nombre_completo: str
     email: str
     password: str
+    carrera: Optional[str] = None
+    telefono: Optional[str] = None
+    ciudad: Optional[str] = None
     rol: str = "postulante"
 
 
@@ -25,7 +28,7 @@ class CrearCuentaHandler(CommandHandler):
     def __init__(self, cuenta_repository: CuentaRepository):
         self.cuenta_repository = cuenta_repository
     
-    def handle(self, command: CrearCuentaCommand) -> UUID:
+    def handle(self, command: CrearCuentaCommand) -> Dict[str, Any]:
         """Maneja el comando de creación de cuenta"""
         
         # Validar que el email no exista
@@ -42,12 +45,11 @@ class CrearCuentaHandler(CommandHandler):
         # Hashear contraseña
         hash_password = PasswordManager.hashear_password(command.password)
         
-        # Determinar rol
-        rol_enum = RolEnum[command.rol.upper()] if hasattr(RolEnum, command.rol.upper()) else RolEnum.POSTULANTE
+        # Mapear rol string a enum
+        rol_enum = RolEnum[command.rol.upper()]
         
         # Crear entidad Cuenta
         cuenta = Cuenta(
-            perfil_id=command.perfil_id,
             rol=rol_enum,
             estado=EstadoCuentaEnum.NO_VERIFICADA
         )
@@ -57,16 +59,28 @@ class CrearCuentaHandler(CommandHandler):
         
         # Aplicar creación con las credenciales
         cuenta_aggregate.aplicar_creacion_cuenta(
-            perfil_id=command.perfil_id,
             email=command.email,
             hash_password=hash_password,
+            nombre_completo=command.nombre_completo,
+            carrera=command.carrera,
+            telefono=command.telefono,
+            ciudad=command.ciudad,
             rol=rol_enum
         )
         
         # Guardar en repositorio
         cuenta_id = self.cuenta_repository.guardar(cuenta_aggregate)
         
-        return cuenta_id
+        # Retornar respuesta
+        return {
+            "cuenta_id": str(cuenta_id),
+            "nombre_completo": command.nombre_completo,
+            "email": command.email,
+            "carrera": command.carrera,
+            "telefono": command.telefono,
+            "ciudad": command.ciudad,
+            "rol": command.rol
+        }
 
 
 @dataclass

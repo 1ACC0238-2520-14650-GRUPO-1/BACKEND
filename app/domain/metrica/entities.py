@@ -9,7 +9,7 @@ from app.domain.common import AggregateRoot
 @dataclass
 class MetricaRegistro:
     """Entity que guarda las métricas del usuario"""
-    perfil_id: UUID
+    cuenta_id: UUID
     total_postulaciones: int = 0
     total_entrevistas: int = 0
     total_exitos: int = 0
@@ -84,7 +84,7 @@ class MetricaAggregate(AggregateRoot):
         """
         self.metrica_registro.aumentar_postulaciones()
         self.add_event(MetricaActualizada(
-            self.metrica_registro.perfil_id,
+            self.metrica_registro.cuenta_id,
             "postulacion_creada"
         ))
     
@@ -96,7 +96,7 @@ class MetricaAggregate(AggregateRoot):
         if estado_nuevo == "entrevista" and estado_anterior != "entrevista":
             self.metrica_registro.aumentar_entrevistas()
             self.add_event(MetricaActualizada(
-                self.metrica_registro.perfil_id,
+                self.metrica_registro.cuenta_id,
                 "entrevista_conseguida"
             ))
         
@@ -104,7 +104,7 @@ class MetricaAggregate(AggregateRoot):
         elif estado_nuevo == "oferta" and estado_anterior != "oferta":
             self.metrica_registro.aumentar_ofertas()
             self.add_event(MetricaActualizada(
-                self.metrica_registro.perfil_id,
+                self.metrica_registro.cuenta_id,
                 "oferta_conseguida"
             ))
         
@@ -112,7 +112,7 @@ class MetricaAggregate(AggregateRoot):
         elif estado_nuevo == "rechazo" and estado_anterior != "rechazo":
             self.metrica_registro.aumentar_rechazos()
             self.add_event(MetricaActualizada(
-                self.metrica_registro.perfil_id,
+                self.metrica_registro.cuenta_id,
                 "postulacion_rechazada"
             ))
     
@@ -125,7 +125,7 @@ class MetricaAggregate(AggregateRoot):
             self.metrica_registro.total_postulaciones -= 1
             self.metrica_registro._recalcular_tasa_exito()
             self.add_event(MetricaActualizada(
-                self.metrica_registro.perfil_id,
+                self.metrica_registro.cuenta_id,
                 "postulacion_eliminada"
             ))
     
@@ -158,7 +158,7 @@ class MetricaAggregate(AggregateRoot):
                 
                 # Emitir evento de logro conseguido
                 self.add_event(LogroConseguido(
-                    self.metrica_registro.perfil_id,
+                    self.metrica_registro.cuenta_id,
                     logro_temp.nombre_logro
                 ))
         
@@ -169,12 +169,12 @@ class MetricaAggregate(AggregateRoot):
 @dataclass
 class MetricaActualizada:
     """Evento que se emite cuando se actualiza una métrica"""
-    perfil_id: UUID
+    cuenta_id: UUID
     tipo_actualizacion: str
 
 
 @dataclass
 class LogroConseguido:
     """Evento que se emite cuando un postulante consigue un logro"""
-    perfil_id: UUID
+    cuenta_id: UUID
     nombre_logro: str

@@ -30,14 +30,14 @@ class MetricaRepositoryImpl(MetricaRepository):
         try:
             # Contar el total de postulaciones
             total_postulaciones = db.query(func.count(PostulacionModel.id)).filter(
-                PostulacionModel.perfil_id == str(postulante_id)
+                PostulacionModel.cuenta_id == str(postulante_id)
             ).scalar() or 0
             
             # No hay postulaciones, retornar métricas en ceros
             if total_postulaciones == 0:
                 return MetricaAggregate(
                     metrica_registro=MetricaRegistro(
-                        perfil_id=postulante_id,
+                        cuenta_id=postulante_id,
                         total_postulaciones=0,
                         total_entrevistas=0,
                         total_exitos=0,
@@ -49,19 +49,19 @@ class MetricaRepositoryImpl(MetricaRepository):
             
             # Contar entrevistas
             total_entrevistas = db.query(func.count(PostulacionModel.id)).filter(
-                PostulacionModel.perfil_id == str(postulante_id),
+                PostulacionModel.cuenta_id == str(postulante_id),
                 PostulacionModel.estado == "entrevista"
             ).scalar() or 0
             
             # Contar ofertas (éxitos)
             total_exitos = db.query(func.count(PostulacionModel.id)).filter(
-                PostulacionModel.perfil_id == str(postulante_id),
+                PostulacionModel.cuenta_id == str(postulante_id),
                 PostulacionModel.estado == "oferta"
             ).scalar() or 0
             
             # Contar rechazos
             total_rechazos = db.query(func.count(PostulacionModel.id)).filter(
-                PostulacionModel.perfil_id == str(postulante_id),
+                PostulacionModel.cuenta_id == str(postulante_id),
                 PostulacionModel.estado.in_(["rechazado", "rechazo"])
             ).scalar() or 0
             
@@ -70,7 +70,7 @@ class MetricaRepositoryImpl(MetricaRepository):
             
             # Crear métricas
             metrica_registro = MetricaRegistro(
-                perfil_id=postulante_id,
+                cuenta_id=postulante_id,
                 total_postulaciones=total_postulaciones,
                 total_entrevistas=total_entrevistas,
                 total_exitos=total_exitos,
@@ -144,7 +144,7 @@ class MetricaRepositoryImpl(MetricaRepository):
         try:
             # Contar ofertas directamente desde la base de datos
             return db.query(func.count(PostulacionModel.id)).filter(
-                PostulacionModel.perfil_id == str(postulante_id),
+                PostulacionModel.cuenta_id == str(postulante_id),
                 PostulacionModel.estado == "oferta"
             ).scalar() or 0
         finally:
@@ -159,7 +159,7 @@ class MetricaRepositoryImpl(MetricaRepository):
         try:
             # Contar entrevistas directamente desde la base de datos
             return db.query(func.count(PostulacionModel.id)).filter(
-                PostulacionModel.perfil_id == str(postulante_id),
+                PostulacionModel.cuenta_id == str(postulante_id),
                 PostulacionModel.estado == "entrevista"
             ).scalar() or 0
         finally:
@@ -174,7 +174,7 @@ class MetricaRepositoryImpl(MetricaRepository):
         try:
             # Contar rechazos directamente desde la base de datos
             return db.query(func.count(PostulacionModel.id)).filter(
-                PostulacionModel.perfil_id == str(postulante_id),
+                PostulacionModel.cuenta_id == str(postulante_id),
                 PostulacionModel.estado.in_(["rechazado", "rechazo"])
             ).scalar() or 0
         finally:
@@ -188,4 +188,4 @@ class MetricaRepositoryImpl(MetricaRepository):
         Al ser un bounded context de solo lectura, no hay necesidad de persistir el estado
         ya que se deriva completamente de otros bounded contexts (postulación).
         """
-        return metrica_aggregate.metrica_registro.perfil_id
+        return metrica_aggregate.metrica_registro.cuenta_id

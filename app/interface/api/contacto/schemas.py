@@ -47,7 +47,7 @@ class ContactoUpdate(BaseModel):
 class FeedbackCreate(BaseModel):
     postulacion_id: str
     empresa_id: str
-    perfil_id: str
+    cuenta_id: str
     tipo_feedback: TipoFeedbackEnum
     mensaje_texto: Optional[str] = None
     motivo_rechazo: Optional[str] = None

@@ -5,12 +5,12 @@ from uuid import UUID
 from app.domain.common import Command, CommandHandler, EventHandler
 from app.domain.metrica.entities import MetricaAggregate, MetricaRegistro
 from app.domain.metrica.repositories import MetricaRepository
-
+from app.domain.iam.entities import CuentaAggregate
 
 @dataclass
 class RecalcularMetricasCommand(Command):
     """Comando para recalcular las métricas de un postulante"""
-    perfil_id: UUID
+    cuenta_id: UUID
 
 
 class RecalcularMetricasHandler(CommandHandler):
@@ -30,12 +30,12 @@ class RecalcularMetricasHandler(CommandHandler):
         son calculadas en tiempo real y no se persisten como estado.
         """
         # Obtener el agregado de métricas calculado en tiempo real
-        metrica_aggregate = self.metrica_repository.obtener_por_postulante(command.perfil_id)
+        metrica_aggregate = self.metrica_repository.obtener_por_postulante(command.cuenta_id)
         
         if not metrica_aggregate:
-            # Si no hay postulaciones para este perfil, devolver valores por defecto
+            # Si no hay postulaciones para esta cuenta, devolver valores por defecto
             return {
-                "perfil_id": str(command.perfil_id),
+                "cuenta_id": str(command.cuenta_id),
                 "total_postulaciones": 0,
                 "total_entrevistas": 0,
                 "total_exitos": 0,
@@ -45,7 +45,7 @@ class RecalcularMetricasHandler(CommandHandler):
         
         # Devolver las métricas calculadas
         return {
-            "perfil_id": str(metrica_aggregate.metrica_registro.perfil_id),
+            "cuenta_id": str(metrica_aggregate.metrica_registro.cuenta_id),
             "total_postulaciones": metrica_aggregate.metrica_registro.total_postulaciones,
             "total_entrevistas": metrica_aggregate.metrica_registro.total_entrevistas,
             "total_exitos": metrica_aggregate.metrica_registro.total_exitos,

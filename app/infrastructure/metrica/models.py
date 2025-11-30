@@ -13,7 +13,7 @@ class MetricaRegistroModel(Base):
     """Modelo de la tabla de métricas de postulantes"""
     __tablename__ = "metricas_registro"
     
-    perfil_id = Column(String(36), primary_key=True)
+    cuenta_id = Column(String(36), primary_key=True)
     total_postulaciones = Column(Integer, nullable=False, default=0)
     total_entrevistas = Column(Integer, nullable=False, default=0)
     total_exitos = Column(Integer, nullable=False, default=0)
@@ -29,7 +29,7 @@ class LogroModel(Base):
     __tablename__ = "logros"
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid4()))
-    perfil_id = Column(String(36), ForeignKey("metricas_registro.perfil_id"), nullable=False)
+    cuenta_id = Column(String(36), ForeignKey("metricas_registro.cuenta_id"), nullable=False)
     nombre_logro = Column(String(100), nullable=False)
     umbral = Column(Integer, nullable=False)
     fecha_obtencion = Column(DateTime, nullable=False)

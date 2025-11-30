@@ -8,7 +8,6 @@ from app.infrastructure.database.connection import engine, Base
 from app.interface.api.postulacion.router import router as postulacion_router
 from app.interface.api.contacto.router import router as contacto_router
 from app.interface.api.metrica.router import router as metrica_router
-from app.interface.api.perfil.router import router as perfil_router
 from app.interface.api.puesto.router import router as puesto_router
 from app.interface.api.iam.router import router as iam_router
 from app.config import settings
@@ -52,7 +51,6 @@ app.add_middleware(
 app.include_router(postulacion_router, prefix="/api", tags=["Postulación"])
 app.include_router(contacto_router, prefix="/api", tags=["Contacto"])
 app.include_router(metrica_router, prefix="/api", tags=["Métricas"])
-app.include_router(perfil_router, prefix="/api", tags=["Perfil"])
 app.include_router(puesto_router, prefix="/api", tags=["Puesto"])
 app.include_router(iam_router, prefix="/api", tags=["IAM"])
 
@@ -77,7 +75,6 @@ async def get_open_api_endpoint():
             {"name": "Postulación", "description": "Gestión de postulaciones de candidatos a ofertas laborales"},
             {"name": "Contacto", "description": "Gestión de contactos y comunicaciones"},
             {"name": "Métricas", "description": "Análisis y métricas de postulaciones"},
-            {"name": "Perfil", "description": "Gestión de perfiles de usuarios"},
             {"name": "Puesto", "description": "Gestión de puestos de trabajo"},
             {"name": "IAM", "description": "Gestión de identidad y acceso con autenticación JWT"}
         ]
@@ -98,3 +95,4 @@ async def get_documentation():
             "filter": True
         }
     )
+# Updated

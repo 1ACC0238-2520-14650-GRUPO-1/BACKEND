@@ -85,7 +85,7 @@ async def enviar_feedback(feedback: FeedbackCreate):
         comando = EnviarFeedbackCommand(
             postulacion_id=UUID(feedback.postulacion_id),
             empresa_id=UUID(feedback.empresa_id),
-            perfil_id=UUID(feedback.perfil_id),
+            cuenta_id=UUID(feedback.cuenta_id),
             tipo_feedback=feedback.tipo_feedback.value,
             mensaje_texto=feedback.mensaje_texto,
             motivo_rechazo=feedback.motivo_rechazo

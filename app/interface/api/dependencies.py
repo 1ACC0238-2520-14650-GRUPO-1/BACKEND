@@ -15,8 +15,8 @@ async def obtener_usuario_actual(credentials: HTTPAuthCredentials = Depends(secu
     Dependencia para obtener el usuario actual a partir del token JWT.
     
     Uso:
-    @router.get("/mi-perfil")
-    async def mi_perfil(usuario: dict = Depends(obtener_usuario_actual)):
+    @router.get("/mi-cuenta")
+    async def mi_cuenta(usuario: dict = Depends(obtener_usuario_actual)):
         return usuario
     """
     token = credentials.credentials
@@ -56,7 +56,6 @@ async def obtener_usuario_actual(credentials: HTTPAuthCredentials = Depends(secu
             "cuenta_id": cuenta_data["cuenta_id"],
             "email": cuenta_data["email"],
             "rol": cuenta_data["rol"],
-            "perfil_id": cuenta_data["perfil_id"],
             "estado": cuenta_data["estado"]
         }
     

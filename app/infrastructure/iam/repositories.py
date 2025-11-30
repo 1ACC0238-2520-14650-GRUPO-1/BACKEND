@@ -2,6 +2,7 @@ import json
 from typing import Optional, List
 from uuid import UUID
 from sqlalchemy.orm import Session
+
 from sqlalchemy.exc import IntegrityError
 
 from app.domain.iam.entities import (
@@ -43,7 +44,10 @@ class CuentaRepositoryImpl(CuentaRepository):
                 # Crear nueva
                 cuenta_model = CuentaModel(
                     id=cuenta.cuenta_id,
-                    perfil_id=cuenta.perfil_id,
+                    nombre_completo=cuenta.nombre_completo,
+                    carrera=cuenta.carrera,
+                    telefono=cuenta.telefono,
+                    ciudad=cuenta.ciudad,
                     email=cuenta.credencial.email,
                     hash_password=cuenta.credencial.hash_password,
                     rol=cuenta.rol,
@@ -88,9 +92,14 @@ class CuentaRepositoryImpl(CuentaRepository):
             self.session.commit()
             return cuenta.cuenta_id
         
-        except IntegrityError:
+        except IntegrityError as ie:
             self.session.rollback()
-            raise ValueError("El email ya está registrado")
+            # Log the actual error to help debugging
+            error_detail = str(ie.orig) if ie.orig else str(ie)
+            if "email" in error_detail.lower() or "unique" in error_detail.lower():
+                raise ValueError("El email ya está registrado")
+            else:
+                raise ValueError(f"Database integrity error: {error_detail}")
         except Exception as e:
             self.session.rollback()
             raise e
@@ -123,19 +132,6 @@ class CuentaRepositoryImpl(CuentaRepository):
         except Exception as e:
             raise e
     
-    def obtener_por_perfil_id(self, perfil_id: UUID) -> Optional[CuentaAggregate]:
-        """Recupera una cuenta por su perfil_id"""
-        try:
-            cuenta_model = self.session.query(CuentaModel).filter_by(
-                perfil_id=perfil_id
-            ).first()
-            
-            if not cuenta_model:
-                return None
-            
-            return self._mapear_modelo_a_aggregate(cuenta_model)
-        except Exception as e:
-            raise e
     
     def verificar_email_existe(self, email: str) -> bool:
         """Verifica si un email ya está registrado"""
@@ -208,8 +204,11 @@ class CuentaRepositoryImpl(CuentaRepository):
         
         cuenta = Cuenta(
             cuenta_id=cuenta_model.id,
-            perfil_id=cuenta_model.perfil_id,
             credencial=credencial,
+            nombre_completo=cuenta_model.nombre_completo,
+            carrera=cuenta_model.carrera,
+            telefono=cuenta_model.telefono,
+            ciudad=cuenta_model.ciudad,
             rol=cuenta_model.rol,
             estado=cuenta_model.estado,
             datos_verificacion=datos_verificacion,

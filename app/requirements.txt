@@ -4,7 +4,7 @@ sqlalchemy
 python-dotenv
 pydantic-settings
 psycopg2-binary
-
+requests
 # Required optional dependency for pydantic email validation
 email-validator
 

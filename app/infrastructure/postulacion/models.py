@@ -4,14 +4,14 @@ from uuid import uuid4
 
 from app.infrastructure.database.connection import Base
 from app.domain.postulacion.entities import EstadoPostulacionEnum
-
+from app.domain.iam.entities import Cuenta
 
 class PostulacionModel(Base):
     """Modelo simplificado de la tabla de postulaciones"""
     __tablename__ = "postulaciones"
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    perfil_id = Column(String(36), nullable=False)  # UUID del perfil
+    cuenta_id = Column(String(36), nullable=False)  # UUID de la cuenta
     puesto_id = Column(Integer, nullable=False)  # Foreign key a puestos.id
     fecha_postulacion = Column(DateTime, nullable=False)
     estado = Column(SQLAEnum(EstadoPostulacionEnum, native_enum=False), nullable=False)

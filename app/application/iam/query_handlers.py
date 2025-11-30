@@ -30,14 +30,17 @@ class ObtenerCuentaQueryHandler(QueryHandler):
         cuenta = cuenta_aggregate.cuenta
         
         return {
-            "cuenta_id": str(cuenta.cuenta_id),
-            "perfil_id": str(cuenta.perfil_id),
+            'cuenta_id': str(cuenta.cuenta_id),
+            'nombre_completo': cuenta.nombre_completo,
+            'carrera': cuenta.carrera,
+            'telefono': cuenta.telefono,
+            'ciudad': cuenta.ciudad,
             "email": cuenta.credencial.email,
             "rol": cuenta.rol.value,
             "estado": cuenta.estado.value,
-            "fecha_creacion": cuenta.fecha_creacion.isoformat(),
-            "fecha_actualizacion": cuenta.fecha_actualizacion.isoformat() if cuenta.fecha_actualizacion else None,
-            "fecha_primer_acceso": cuenta.fecha_primer_acceso.isoformat() if cuenta.fecha_primer_acceso else None
+            "fecha_creacion": cuenta.fecha_creacion,
+            "fecha_actualizacion": cuenta.fecha_actualizacion,
+            "fecha_primer_acceso": cuenta.fecha_primer_acceso
         }
 
 
@@ -65,48 +68,20 @@ class ObtenerCuentaPorEmailQueryHandler(QueryHandler):
         
         return {
             "cuenta_id": str(cuenta.cuenta_id),
-            "perfil_id": str(cuenta.perfil_id),
+            "nombre_completo": cuenta.nombre_completo,
             "email": cuenta.credencial.email,
+            "carrera": cuenta.carrera,
+            "telefono": cuenta.telefono,
+            "ciudad": cuenta.ciudad,
             "rol": cuenta.rol.value,
             "estado": cuenta.estado.value,
-            "fecha_creacion": cuenta.fecha_creacion.isoformat(),
-            "fecha_actualizacion": cuenta.fecha_actualizacion.isoformat() if cuenta.fecha_actualizacion else None,
-            "fecha_primer_acceso": cuenta.fecha_primer_acceso.isoformat() if cuenta.fecha_primer_acceso else None
+            "fecha_creacion": cuenta.fecha_creacion,
+            "fecha_actualizacion": cuenta.fecha_actualizacion,
+            "fecha_primer_acceso": cuenta.fecha_primer_acceso
         }
 
 
-@dataclass
-class ObtenerCuentaPorPerfilQuery(Query):
-    """Query para obtener una cuenta por perfil_id"""
-    perfil_id: UUID
 
-
-class ObtenerCuentaPorPerfilQueryHandler(QueryHandler):
-    """Manejador de consulta para obtener una cuenta por perfil_id"""
-    
-    def __init__(self, cuenta_repository: CuentaRepository):
-        self.cuenta_repository = cuenta_repository
-    
-    def handle(self, query: ObtenerCuentaPorPerfilQuery) -> Optional[Dict[str, Any]]:
-        """Maneja la consulta de cuenta por perfil_id"""
-        
-        cuenta_aggregate = self.cuenta_repository.obtener_por_perfil_id(query.perfil_id)
-        
-        if not cuenta_aggregate:
-            return None
-        
-        cuenta = cuenta_aggregate.cuenta
-        
-        return {
-            "cuenta_id": str(cuenta.cuenta_id),
-            "perfil_id": str(cuenta.perfil_id),
-            "email": cuenta.credencial.email,
-            "rol": cuenta.rol.value,
-            "estado": cuenta.estado.value,
-            "fecha_creacion": cuenta.fecha_creacion.isoformat(),
-            "fecha_actualizacion": cuenta.fecha_actualizacion.isoformat() if cuenta.fecha_actualizacion else None,
-            "fecha_primer_acceso": cuenta.fecha_primer_acceso.isoformat() if cuenta.fecha_primer_acceso else None
-        }
 
 
 @dataclass
@@ -157,12 +132,15 @@ class ListarCuentasQueryHandler(QueryHandler):
         
         return [
             {
-                "cuenta_id": str(agg.cuenta.cuenta_id),
-                "perfil_id": str(agg.cuenta.perfil_id),
+                'cuenta_id': str(agg.cuenta.cuenta_id),
+                'nombre_completo': agg.cuenta.nombre_completo,
+                'carrera': agg.cuenta.carrera,
+                'telefono': agg.cuenta.telefono,
+                'ciudad': agg.cuenta.ciudad,
                 "email": agg.cuenta.credencial.email,
                 "rol": agg.cuenta.rol.value,
                 "estado": agg.cuenta.estado.value,
-                "fecha_creacion": agg.cuenta.fecha_creacion.isoformat()
+                "fecha_creacion": agg.cuenta.fecha_creacion
             }
             for agg in cuentas_aggregate
         ]

@@ -209,7 +209,7 @@ class SubirDocumentoPerfilCommand(Command):
     Comando para subir un documento al perfil
     US18: Subir documentos al perfil
     """
-    perfil_id: UUID
+    cuenta_id: UUID
     documento: dict  # Contiene nombre, tipo, url, etc.
 
 
@@ -219,7 +219,7 @@ class EliminarDocumentoPerfilCommand(Command):
     Comando para eliminar un documento del perfil
     US19: Eliminar documento del perfil
     """
-    perfil_id: UUID
+    cuenta_id: UUID
     documento_id: str
 
 
@@ -229,5 +229,5 @@ class CompletarPerfilBasicoCommand(Command):
     Comando para completar perfil básico del postulante
     US12: Completar perfil básico del postulante
     """
-    perfil_id: UUID
+    cuenta_id: UUID
     datos_basicos: dict  # Contiene nombre, apellido, descripción, etc.

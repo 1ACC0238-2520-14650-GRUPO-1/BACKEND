@@ -27,11 +27,6 @@ class CuentaRepository(ABC):
         pass
     
     @abstractmethod
-    def obtener_por_perfil_id(self, perfil_id: UUID) -> Optional[CuentaAggregate]:
-        """Recupera una cuenta por su perfil_id"""
-        pass
-    
-    @abstractmethod
     def verificar_email_existe(self, email: str) -> bool:
         """Verifica si un email ya está registrado"""
         pass

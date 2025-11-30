@@ -15,7 +15,7 @@ class EnviarFeedbackCommand(Command):
     """Comando para enviar feedback a un postulante"""
     postulacion_id: UUID
     empresa_id: UUID
-    perfil_id: UUID
+    cuenta_id: UUID
     tipo_feedback: str
     mensaje_texto: str
     motivo_rechazo: Optional[str] = None
@@ -54,7 +54,7 @@ class EnviarFeedbackCommandHandler(CommandHandler):
         contacto = ContactoPostulacion(
             postulacion_id=command.postulacion_id,
             empresa_id=command.empresa_id,
-            perfil_id=command.perfil_id,
+            cuenta_id=command.cuenta_id,
             tipo_mensaje=TipoMensajeEnum.FEEDBACK
         )
         

@@ -2,12 +2,9 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 from uuid import UUID
 from jose import jwt, JWTError
-from passlib.context import CryptContext
+import bcrypt
 
 from app.config import settings
-
-# Configuración de hash de contraseñas - usando argon2
-pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 
 class TokenManager:
@@ -103,13 +100,48 @@ class PasswordManager:
     
     @staticmethod
     def hashear_password(password: str) -> str:
-        """Genera el hash de una contraseña"""
-        return pwd_context.hash(password)
+        """Genera el hash de una contraseña usando bcrypt"""
+        # Ensure password is a string
+        if not isinstance(password, str):
+            password = str(password)
+        
+        # Ensure password is not already hashed (bcrypt hashes start with $2b$ or $2y$)
+        if password.startswith('$2b$') or password.startswith('$2y$') or password.startswith('$2a$'):
+            raise ValueError("Password appears to be already hashed")
+        
+        # Encode to bytes and truncate to 72 bytes (bcrypt limit)
+        password_bytes = password.encode('utf-8')
+        if len(password_bytes) > 72:
+            password_bytes = password_bytes[:72]
+        
+        # Hash using bcrypt with rounds=12
+        salt = bcrypt.gensalt(rounds=12)
+        hash_password = bcrypt.hashpw(password_bytes, salt)
+        
+        # Return as string
+        return hash_password.decode('utf-8')
     
     @staticmethod
     def verificar_password(password: str, hash_password: str) -> bool:
         """Verifica una contraseña contra su hash"""
-        return pwd_context.verify(password, hash_password)
+        if not isinstance(password, str):
+            password = str(password)
+        
+        if not isinstance(hash_password, str):
+            hash_password = str(hash_password)
+        
+        # Encode password to bytes
+        password_bytes = password.encode('utf-8')
+        
+        # Truncate to 72 bytes if needed
+        if len(password_bytes) > 72:
+            password_bytes = password_bytes[:72]
+        
+        # Encode hash_password to bytes if needed
+        hash_bytes = hash_password.encode('utf-8') if isinstance(hash_password, str) else hash_password
+        
+        # Verify
+        return bcrypt.checkpw(password_bytes, hash_bytes)
     
     @staticmethod
     def es_password_fuerte(password: str) -> bool:

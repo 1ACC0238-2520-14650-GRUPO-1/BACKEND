@@ -11,8 +11,6 @@ class RolEnum(str, Enum):
     """Roles disponibles en el sistema"""
     POSTULANTE = "postulante"
     EMPRESA = "empresa"
-    ADMIN = "admin"
-    REVISOR = "revisor"
 
 
 class EstadoCuentaEnum(str, Enum):
@@ -65,8 +63,11 @@ class Token:
 class Cuenta:
     """Entity que representa la cuenta de un usuario"""
     cuenta_id: UUID = field(default_factory=uuid4)
-    perfil_id: UUID = field(default_factory=uuid4)
     credencial: Credencial = field(default_factory=Credencial)
+    nombre_completo: str = ""
+    carrera: Optional[str] = None
+    telefono: Optional[str] = None
+    ciudad: Optional[str] = None
     rol: RolEnum = RolEnum.POSTULANTE
     estado: EstadoCuentaEnum = EstadoCuentaEnum.NO_VERIFICADA
     datos_verificacion: Dict[str, Any] = field(default_factory=dict)
@@ -98,9 +99,12 @@ class CuentaAggregate(AggregateRoot):
     
     def aplicar_creacion_cuenta(
         self,
-        perfil_id: UUID,
         email: str,
         hash_password: str,
+        nombre_completo: str = "",
+        carrera: Optional[str] = None,
+        telefono: Optional[str] = None,
+        ciudad: Optional[str] = None,
         rol: RolEnum = RolEnum.POSTULANTE
     ) -> None:
         """Aplica la creación de una nueva cuenta"""
@@ -110,14 +114,16 @@ class CuentaAggregate(AggregateRoot):
         )
         
         self.cuenta.credencial = credencial
-        self.cuenta.perfil_id = perfil_id
+        self.cuenta.nombre_completo = nombre_completo
+        self.cuenta.carrera = carrera
+        self.cuenta.telefono = telefono
+        self.cuenta.ciudad = ciudad
         self.cuenta.rol = rol
         
         self.add_event(CuentaCreada(
             self.cuenta.cuenta_id,
-            perfil_id,
             email,
-            rol
+            rol=rol
         ))
     
     def aplicar_verificacion_cuenta(self, codigo_verificacion: str) -> bool:
@@ -130,8 +136,7 @@ class CuentaAggregate(AggregateRoot):
         self.cuenta.datos_verificacion['fecha_verificacion'] = datetime.now().isoformat()
         
         self.add_event(CuentaVerificada(
-            self.cuenta.cuenta_id,
-            self.cuenta.perfil_id
+            self.cuenta.cuenta_id
         ))
         
         return True
@@ -176,8 +181,7 @@ class CuentaAggregate(AggregateRoot):
         })
         
         self.add_event(LoginExitoso(
-            self.cuenta.cuenta_id,
-            self.cuenta.perfil_id
+            self.cuenta.cuenta_id
         ))
     
     def aplicar_intento_fallido(self) -> None:
@@ -235,7 +239,6 @@ class CuentaAggregate(AggregateRoot):
 class CuentaCreada:
     """Evento que se emite cuando se crea una nueva cuenta"""
     cuenta_id: UUID
-    perfil_id: UUID
     email: str
     rol: RolEnum
 
@@ -244,7 +247,6 @@ class CuentaCreada:
 class CuentaVerificada:
     """Evento que se emite cuando se verifica una cuenta"""
     cuenta_id: UUID
-    perfil_id: UUID
 
 
 @dataclass
@@ -259,7 +261,6 @@ class TokenGenerado:
 class LoginExitoso:
     """Evento que se emite cuando hay un login exitoso"""
     cuenta_id: UUID
-    perfil_id: UUID
 
 
 @dataclass

@@ -12,7 +12,6 @@ from app.application.iam.command_handlers import (
 from app.application.iam.query_handlers import (
     ObtenerCuentaQueryHandler, ObtenerCuentaQuery,
     ObtenerCuentaPorEmailQueryHandler, ObtenerCuentaPorEmailQuery,
-    ObtenerCuentaPorPerfilQueryHandler, ObtenerCuentaPorPerfilQuery,
     VerificarTokenQueryHandler, VerificarTokenQuery
 )
 from app.infrastructure.iam.repositories import CuentaRepositoryImpl
@@ -31,32 +30,44 @@ router = APIRouter(prefix="/iam", tags=["IAM"])
 @router.post("/registrar", response_model=CuentaResponse, status_code=status.HTTP_201_CREATED)
 async def registrar_cuenta(request: CrearCuentaRequest):
     """
-    Registra una nueva cuenta de usuario asociada a un perfil.
-    
-    - **perfil_id**: ID del perfil del usuario
+    Registra una nueva cuenta de usuario.
     - **email**: Email único del usuario
     - **password**: Contraseña (mín. 8 caracteres, mayúscula, minúscula, número, carácter especial)
-    - **rol**: Rol del usuario (postulante, empresa, admin) - por defecto 'postulante'
+    - **tipo_cuenta**: Tipo de cuenta (candidato, empresa, admin) - por defecto 'candidato'
     """
     try:
         repository = CuentaRepositoryImpl()
         handler = CrearCuentaHandler(repository)
         
         command = CrearCuentaCommand(
-            perfil_id=UUID(request.perfil_id),
+            nombre_completo=request.nombre_completo,
             email=request.email,
             password=request.password,
-            rol=request.rol or "postulante"
+            carrera=request.carrera,
+            telefono=request.telefono,
+            ciudad=request.ciudad,
+            rol=request.rol
         )
         
         cuenta_id = handler.handle(command)
         
-        # Obtener la cuenta creada
+        # Obtener la cuenta creada para devolver los datos completos
         query_handler = ObtenerCuentaQueryHandler(repository)
-        query = ObtenerCuentaQuery(cuenta_id=cuenta_id)
-        cuenta_data = query_handler.handle(query)
+        cuenta_data = query_handler.handle(ObtenerCuentaQuery(cuenta_id=UUID(cuenta_id['cuenta_id'])))
         
-        return CuentaResponse(**cuenta_data)
+        return CuentaResponse(
+            cuenta_id=cuenta_data['cuenta_id'],
+            nombre_completo=cuenta_data['nombre_completo'],
+            email=cuenta_data['email'],
+            carrera=cuenta_data['carrera'],
+            telefono=cuenta_data['telefono'],
+            ciudad=cuenta_data['ciudad'],
+            rol=cuenta_data['rol'],
+            estado=cuenta_data['estado'],
+            fecha_creacion=cuenta_data['fecha_creacion'],
+            fecha_actualizacion=cuenta_data['fecha_actualizacion'],
+            fecha_primer_acceso=cuenta_data['fecha_primer_acceso']
+        )
     
     except ValueError as e:
         raise HTTPException(
@@ -317,35 +328,7 @@ async def obtener_cuenta_por_email(email: str):
         )
 
 
-@router.get("/cuenta/perfil/{perfil_id}", response_model=CuentaResponse, status_code=status.HTTP_200_OK)
-async def obtener_cuenta_por_perfil(perfil_id: str):
-    """
-    Obtiene la información de una cuenta asociada a un perfil.
-    
-    - **perfil_id**: ID del perfil
-    """
-    try:
-        repository = CuentaRepositoryImpl()
-        handler = ObtenerCuentaPorPerfilQueryHandler(repository)
-        
-        query = ObtenerCuentaPorPerfilQuery(perfil_id=UUID(perfil_id))
-        cuenta_data = handler.handle(query)
-        
-        if not cuenta_data:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Cuenta no encontrada para el perfil: {perfil_id}"
-            )
-        
-        return CuentaResponse(**cuenta_data)
-    
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Error al obtener cuenta: {str(e)}"
-        )
+
 
 
 @router.post("/verificar-token", response_model=TokenVerificationResponse, status_code=status.HTTP_200_OK)

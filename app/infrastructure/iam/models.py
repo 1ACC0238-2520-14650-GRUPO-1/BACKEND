@@ -12,9 +12,12 @@ class CuentaModel(Base):
     __tablename__ = "cuentas"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    perfil_id = Column(UUID(as_uuid=True), nullable=False, unique=True)
     email = Column(String(255), nullable=False, unique=True, index=True)
     hash_password = Column(String(255), nullable=False)
+    nombre_completo = Column(String(255), nullable=False)
+    carrera = Column(String(255), nullable=True)
+    telefono = Column(String(50), nullable=True)
+    ciudad = Column(String(100), nullable=True)
     rol = Column(Enum(RolEnum), nullable=False, default=RolEnum.POSTULANTE)
     estado = Column(Enum(EstadoCuentaEnum), nullable=False, default=EstadoCuentaEnum.NO_VERIFICADA)
     datos_verificacion = Column(Text, nullable=True)  # JSON almacenado como texto

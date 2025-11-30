@@ -24,22 +24,22 @@ from .schemas import (
 router = APIRouter(prefix="/metricas", tags=["Métricas"])
 
 # Endpoints para consulta de métricas (calculadas en tiempo real)
-@router.get("/resumen/{perfil_id}", response_model=MetricaResumenResponse)
-async def obtener_resumen_metricas(perfil_id: UUID = Path(..., title="ID del perfil")):
+@router.get("/resumen/{cuenta_id}", response_model=MetricaResumenResponse)
+async def obtener_resumen_metricas(cuenta_id: UUID = Path(..., title="ID del cuenta")):
     """
-    Obtiene un resumen de todas las métricas para un perfil específico.
+    Obtiene un resumen de todas las métricas para una cuenta  específica.
     Las métricas se calculan en tiempo real basadas en el estado actual de las postulaciones.
     """
     try:
         metrica_repository = MetricaRepositoryImpl()
         handler = ConsultarResumenMetricasHandler(metrica_repository)
-        query = ConsultarResumenMetricasQuery(perfil_id=perfil_id)
+        query = ConsultarResumenMetricasQuery(cuenta_id=cuenta_id)
         
         resultado = handler.handle(query)
         if not resultado:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"No se encontraron métricas para el perfil {perfil_id}"
+                detail=f"No se encontraron métricas para el cuenta {cuenta_id}"
             )
         return resultado
     except Exception as e:
@@ -49,16 +49,16 @@ async def obtener_resumen_metricas(perfil_id: UUID = Path(..., title="ID del per
         )
 
 
-@router.get("/logros/{perfil_id}", response_model=List[LogroResponse])
-async def listar_logros(perfil_id: UUID = Path(..., title="ID del perfil")):
+@router.get("/logros/{cuenta_id}", response_model=List[LogroResponse])
+async def listar_logros(cuenta_id: UUID = Path(..., title="ID del cuenta")):
     """
-    Lista todos los logros conseguidos por un perfil específico.
+    Lista todos los logros conseguidos por una cuenta específica.
     Los logros se calculan en tiempo real basados en el historial de postulaciones.
     """
     try:
         metrica_repository = MetricaRepositoryImpl()
         handler = ListarLogrosHandler(metrica_repository)
-        query = ListarLogrosQuery(perfil_id=perfil_id)
+        query = ListarLogrosQuery(cuenta_id=cuenta_id)
         
         return handler.handle(query)
     except Exception as e:
@@ -68,16 +68,16 @@ async def listar_logros(perfil_id: UUID = Path(..., title="ID del perfil")):
         )
 
 
-@router.get("/recalcular/{perfil_id}", response_model=MetricaResumenResponse)
-async def recalcular_metricas(perfil_id: UUID = Path(..., title="ID del perfil")):
+@router.get("/recalcular/{cuenta_id}", response_model=MetricaResumenResponse)
+async def recalcular_metricas(cuenta_id: UUID = Path(..., title="ID de la cuenta" )):
     """
-    Fuerza un recálculo de todas las métricas para un perfil específico.
+    Fuerza un recálculo de todas las métricas para un cuenta específico.
     Las métricas se calculan en tiempo real basadas en el estado actual de las postulaciones.
     """
     try:
         metrica_repository = MetricaRepositoryImpl()
         handler = RecalcularMetricasHandler(metrica_repository)
-        command = RecalcularMetricasCommand(perfil_id=perfil_id)
+        command = RecalcularMetricasCommand(cuenta_id=cuenta_id)
         
         return handler.handle(command)
     except Exception as e:
