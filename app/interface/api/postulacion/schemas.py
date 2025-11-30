@@ -35,6 +35,35 @@ class HitoResponse(BaseModel):
     descripcion: str
 
 
+class CandidatoInfoResponse(BaseModel):
+    """Información del candidato para enriquecer postulación"""
+    cuenta_id: str
+    nombre_completo: str
+    email: str
+    carrera: Optional[str] = None
+    telefono: Optional[str] = None
+    ciudad: Optional[str] = None
+
+
+class PuestoInfoResponse(BaseModel):
+    """Información del puesto para enriquecer postulación"""
+    puesto_id: str
+    titulo: str
+    descripcion: str
+    ubicacion: str
+    salario_min: Optional[float] = None
+    salario_max: Optional[float] = None
+    moneda: str = "MXN"
+    tipo_contrato: str
+
+
+class EmpresaInfoResponse(BaseModel):
+    """Información de la empresa para enriquecer postulación"""
+    empresa_id: str
+    nombre: str
+    email: str
+
+
 class PostulacionResponse(BaseModel):
     postulacion_id: str
     candidato_id: str
@@ -43,6 +72,19 @@ class PostulacionResponse(BaseModel):
     estado: str
     documentos_adjuntos: List[Dict[str, Any]]
     hitos: List[HitoResponse]
+
+
+class PostulacionEnriquecidaResponse(BaseModel):
+    """Respuesta de postulación con información enriquecida de candidato, puesto y empresa"""
+    postulacion_id: str
+    fecha_postulacion: datetime
+    estado: str
+    documentos_adjuntos: List[Dict[str, Any]]
+    hitos: List[HitoResponse]
+    # Información enriquecida
+    candidato: Optional[CandidatoInfoResponse] = None
+    puesto: Optional[PuestoInfoResponse] = None
+    empresa: Optional[EmpresaInfoResponse] = None
 
 
 class EstadoUpdate(BaseModel):
