@@ -1,8 +1,10 @@
 import time
 import logging
+import os
 from sqlalchemy import create_engine, text, exc
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 
 from app.config import settings
 
@@ -59,9 +61,9 @@ def create_database():
         return True
 
     try:
-        temp_engine = create_engine(DEFAULT_POSTGRES_URL)
+        temp_engine = create_engine(DEFAULT_POSTGRES_URL, isolation_level="AUTOCOMMIT")
         
-        with temp_engine.connect().execution_options(autocommit=True) as connection:
+        with temp_engine.connect() as connection:
             connection.execute(text(f"CREATE DATABASE {settings.DB_NAME}"))
             
         logger.info(f"Base de datos '{settings.DB_NAME}' creada exitosamente.")
@@ -83,18 +85,35 @@ try:
 except Exception as e:
     logger.error(f"Error durante la inicialización de la base de datos: {e}")
 
+# Detectar entorno Vercel
+IS_VERCEL = os.getenv("VERCEL", "") == "1"
+
 try:
-    engine = create_engine(
-        SQLALCHEMY_DATABASE_URL, 
-        echo=settings.DEBUG,
-        pool_pre_ping=True,
-        pool_recycle=3600,
-        connect_args={
-            "connect_timeout": 10,
-            "keepalives": 1,
-            "keepalives_idle": 30,
-        }
-    )
+    if IS_VERCEL:
+        # En Vercel: usar NullPool (crear/cerrar conexión cada request)
+        engine = create_engine(
+            SQLALCHEMY_DATABASE_URL,
+            poolclass=NullPool,
+            connect_args={
+                "connect_timeout": 5,
+                "options": "-c statement_timeout=8000"  # 8 segundos max por query
+            },
+            echo=False
+        )
+    else:
+        # En local: usar pool normal
+        engine = create_engine(
+            SQLALCHEMY_DATABASE_URL, 
+            echo=settings.DEBUG,
+            pool_pre_ping=True,
+            pool_recycle=3600,
+            connect_args={
+                "connect_timeout": 10,
+                "keepalives": 1,
+                "keepalives_idle": 30,
+                "client_encoding": "utf8",
+            }
+        )
     logger.info("Motor de SQLAlchemy creado exitosamente.")
 except Exception as e:
     logger.error(f"Error al crear el motor de SQLAlchemy: {e}")
