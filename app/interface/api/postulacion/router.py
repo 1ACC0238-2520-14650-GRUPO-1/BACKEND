@@ -55,7 +55,7 @@ async def crear_postulacion(postulacion: PostulacionCreate):
         # Enriquecer con datos relacionados
         respuesta_enriquecida = postulacion_service.enriquecer_postulacion(respuesta_basica)
         
-        return respuesta_basica
+        return respuesta_enriquecida
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
