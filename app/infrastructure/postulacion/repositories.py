@@ -23,10 +23,11 @@ class PostulacionRepositoryImpl(PostulacionRepository):
             
             # Crear nueva postulación - pasar el valor string del enum
             post_db = PostulacionModel(
+                postulacion_id=str(post.postulacion_id),
                 cuenta_id=str(post.candidato_id),
-                puesto_id=1,  # Placeholder
+                puesto_id=str(post.puesto_id),
                 fecha_postulacion=post.fecha_postulacion,
-                estado=post.estado.valor.value,  # Pasar el .value (string: "pendiente")
+                estado=post.estado.valor.value,
                 resultado=None
             )
             db.add(post_db)
@@ -54,16 +55,18 @@ class PostulacionRepositoryImpl(PostulacionRepository):
         """Obtiene una postulación por ID"""
         db = SessionLocal()
         try:
-            # Buscar por ID más reciente
-            post_db = db.query(PostulacionModel).order_by(PostulacionModel.id.desc()).first()
+            # Buscar por postulacion_id (UUID)
+            post_db = db.query(PostulacionModel).filter(
+                PostulacionModel.postulacion_id == str(postulacion_id)
+            ).first()
             
             if not post_db:
                 return None
             
             post = Postulacion(
-                postulacion_id=postulacion_id,
+                postulacion_id=UUID(post_db.postulacion_id) if post_db.postulacion_id else postulacion_id,
                 candidato_id=UUID(post_db.cuenta_id),
-                puesto_id=UUID('00000000-0000-0000-0000-000000000001'),
+                puesto_id=UUID(post_db.puesto_id) if post_db.puesto_id else UUID('00000000-0000-0000-0000-000000000001'),
                 fecha_postulacion=post_db.fecha_postulacion,
                 estado=EstadoPostulacion(post_db.estado),
                 documentos_adjuntos=[]
@@ -97,9 +100,9 @@ class PostulacionRepositoryImpl(PostulacionRepository):
             resultado = []
             for post_db in posts_db:
                 post = Postulacion(
-                    postulacion_id=UUID('00000000-0000-0000-0000-000000000001'),
+                    postulacion_id=UUID(post_db.postulacion_id) if post_db.postulacion_id else UUID('00000000-0000-0000-0000-000000000001'),
                     candidato_id=UUID(post_db.cuenta_id),
-                    puesto_id=UUID('00000000-0000-0000-0000-000000000001'),
+                    puesto_id=UUID(post_db.puesto_id) if post_db.puesto_id else UUID('00000000-0000-0000-0000-000000000001'),
                     fecha_postulacion=post_db.fecha_postulacion,
                     estado=EstadoPostulacion(post_db.estado),
                     documentos_adjuntos=[]
@@ -138,7 +141,10 @@ class PostulacionRepositoryImpl(PostulacionRepository):
         db = SessionLocal()
         try:
             from app.domain.postulacion.entities import EstadoPostulacionEnum
-            post_db = db.query(PostulacionModel).order_by(PostulacionModel.id.desc()).first()
+            # Buscar la postulación por su UUID
+            post_db = db.query(PostulacionModel).filter(
+                PostulacionModel.postulacion_id == str(postulacion_id)
+            ).first()
             if not post_db:
                 return False
             
