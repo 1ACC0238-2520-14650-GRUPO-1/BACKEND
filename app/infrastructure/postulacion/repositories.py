@@ -15,25 +15,41 @@ class PostulacionRepositoryImpl(PostulacionRepository):
     """Repositorio simplificado de postulaciones"""
     
     def guardar(self, postulacion_aggregate: PostulacionAggregate) -> UUID:
-        """Guarda una postulación y devuelve su ID"""
+        """Guarda o actualiza una postulación y devuelve su ID"""
         db = SessionLocal()
         try:
             post = postulacion_aggregate.postulacion
             post_id = post.postulacion_id
             
-            # Crear nueva postulación - pasar el valor string del enum
-            post_db = PostulacionModel(
-                postulacion_id=str(post.postulacion_id),
-                cuenta_id=str(post.candidato_id),
-                puesto_id=str(post.puesto_id),
-                fecha_postulacion=post.fecha_postulacion,
-                estado=post.estado.valor.value,
-                resultado=None
-            )
-            db.add(post_db)
-            db.flush()
+            # Verificar si ya existe
+            post_db = db.query(PostulacionModel).filter(
+                PostulacionModel.postulacion_id == str(post.postulacion_id)
+            ).first()
             
-            # Guardar hitos
+            if post_db:
+                # Actualizar existente
+                post_db.estado = post.estado.valor.value
+                post_db.cuenta_id = str(post.candidato_id)
+                post_db.puesto_id = str(post.puesto_id)
+                post_db.fecha_postulacion = post.fecha_postulacion
+                
+                # Eliminar hitos existentes y agregar los nuevos
+                db.query(HitoModel).filter(HitoModel.postulacion_id == post_db.id).delete()
+                db.flush()
+            else:
+                # Crear nueva postulación
+                post_db = PostulacionModel(
+                    postulacion_id=str(post.postulacion_id),
+                    cuenta_id=str(post.candidato_id),
+                    puesto_id=str(post.puesto_id),
+                    fecha_postulacion=post.fecha_postulacion,
+                    estado=post.estado.valor.value,
+                    resultado=None
+                )
+                db.add(post_db)
+                db.flush()
+            
+            # Guardar todos los hitos
             for hito in postulacion_aggregate.linea_de_tiempo.lista_hitos:
                 hito_db = HitoModel(
                     postulacion_id=post_db.id,
