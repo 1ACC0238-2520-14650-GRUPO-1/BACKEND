@@ -191,17 +191,7 @@ async def actualizar_estado_postulacion(
     try:
         postulacion_repository = PostulacionRepositoryImpl()
         
-        # Obtener la postulación actual
-        handler_get = ObtenerPostulacionQueryHandler(postulacion_repository)
-        query_get = ObtenerPostulacionQuery(postulacion_id=UUID(postulacion_id))
-        postulacion_actual = handler_get.handle(query_get)
-        if not postulacion_actual:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Postulación con ID {postulacion_id} no encontrada"
-            )
-        
-        # Actualizar estado
+        # Actualizar estado usando el command handler
         handler = ActualizarEstadoPostulacionHandler(postulacion_repository)
         command = ActualizarEstadoCommand(
             postulacion_id=UUID(postulacion_id),
@@ -209,15 +199,37 @@ async def actualizar_estado_postulacion(
         )
         resultado = handler.handle(command)
         
-        # Construir respuesta actualizada
+        if not resultado:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"No se pudo actualizar el estado de la postulación"
+            )
+        
+        # Obtener la postulación actualizada (con hitos nuevos)
+        postulacion_actualizada = postulacion_repository.obtener_por_id(UUID(postulacion_id))
+        
+        if not postulacion_actualizada:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Postulación con ID {postulacion_id} no encontrada"
+            )
+        
+        # Construir respuesta desde el agregado actualizado
         respuesta = {
-            "postulacion_id": postulacion_actual.get("postulacion_id", postulacion_id),
-            "candidato_id": postulacion_actual.get("candidato_id", ""),
-            "puesto_id": postulacion_actual.get("puesto_id", ""),
-            "fecha_postulacion": datetime.fromisoformat(postulacion_actual.get("fecha_postulacion", datetime.now().isoformat())),
-            "estado": estado_update.nuevo_estado,
-            "documentos_adjuntos": postulacion_actual.get("documentos_adjuntos", []),
-            "hitos": postulacion_actual.get("hitos", [])
+            "postulacion_id": str(postulacion_actualizada.postulacion.postulacion_id),
+            "candidato_id": str(postulacion_actualizada.postulacion.candidato_id),
+            "puesto_id": str(postulacion_actualizada.postulacion.puesto_id),
+            "fecha_postulacion": postulacion_actualizada.postulacion.fecha_postulacion.isoformat(),
+            "estado": postulacion_actualizada.postulacion.estado.valor.value,
+            "documentos_adjuntos": postulacion_actualizada.postulacion.documentos_adjuntos,
+            "hitos": [
+                {
+                    "hito_id": str(hito.hito_id),
+                    "fecha": hito.fecha.isoformat(),
+                    "descripcion": hito.descripcion
+                }
+                for hito in postulacion_actualizada.linea_de_tiempo.lista_hitos
+            ]
         }
         
         # Enriquecer con datos relacionados
