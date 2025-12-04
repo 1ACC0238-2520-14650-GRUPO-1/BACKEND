@@ -40,7 +40,14 @@ class PuestoRepositoryImpl(PuestoRepository):
                     puesto_db.titulo = puesto.titulo
                     puesto_db.empresa = empresa_id_str
                     puesto_db.descripcion = puesto.descripcion
-                    puesto_db.estado = puesto.estado
+                    puesto_db.ubicacion = puesto.ubicacion
+                    puesto_db.salario_min = puesto.salario_min
+                    puesto_db.salario_max = puesto.salario_max
+                    puesto_db.moneda = puesto.moneda
+                    puesto_db.tipo_contrato = puesto.tipo_contrato.value if hasattr(puesto.tipo_contrato, 'value') else str(puesto.tipo_contrato)
+                    puesto_db.fecha_publicacion = puesto.fecha_publicacion
+                    puesto_db.fecha_cierre = puesto.fecha_cierre
+                    puesto_db.estado = puesto.estado.value if hasattr(puesto.estado, 'value') else str(puesto.estado)
                     db.commit()
             else:
                 # INSERT: Nuevo puesto
@@ -48,7 +55,14 @@ class PuestoRepositoryImpl(PuestoRepository):
                     titulo=puesto.titulo,
                     empresa=empresa_id_str,
                     descripcion=puesto.descripcion,
-                    estado=puesto.estado or "abierto"
+                    ubicacion=puesto.ubicacion,
+                    salario_min=puesto.salario_min,
+                    salario_max=puesto.salario_max,
+                    moneda=puesto.moneda,
+                    tipo_contrato=puesto.tipo_contrato.value if hasattr(puesto.tipo_contrato, 'value') else str(puesto.tipo_contrato),
+                    fecha_publicacion=puesto.fecha_publicacion,
+                    fecha_cierre=puesto.fecha_cierre,
+                    estado=puesto.estado.value if hasattr(puesto.estado, 'value') else (puesto.estado or "abierto")
                 )
                 db.add(puesto_db)
                 db.flush()  # Obtener el ID autogenerado
@@ -91,24 +105,37 @@ class PuestoRepositoryImpl(PuestoRepository):
             if not puesto_db:
                 return None
             
-            from app.domain.puesto.entities import Puesto
+            from app.domain.puesto.entities import Puesto, TipoContratoEnum, EstadoPuestoEnum
             
             try:
                 empresa_id = UUID(puesto_db.empresa)
             except:
                 empresa_id = UUID('00000000-0000-0000-0000-000000000000')
             
+            # Convertir tipo_contrato y estado a enums
+            try:
+                tipo_contrato = TipoContratoEnum(puesto_db.tipo_contrato) if puesto_db.tipo_contrato else TipoContratoEnum.TIEMPO_COMPLETO
+            except:
+                tipo_contrato = TipoContratoEnum.TIEMPO_COMPLETO
+            
+            try:
+                estado = EstadoPuestoEnum(puesto_db.estado) if puesto_db.estado else EstadoPuestoEnum.ABIERTO
+            except:
+                estado = EstadoPuestoEnum.ABIERTO
+            
             puesto = Puesto(
                 puesto_id=puesto_id,
                 empresa_id=empresa_id,
                 titulo=puesto_db.titulo,
                 descripcion=puesto_db.descripcion,
-                ubicacion="",
-                salario_min=0.0,
-                salario_max=0.0,
-                moneda="",
-                tipo_contrato="",
-                estado=puesto_db.estado
+                ubicacion=puesto_db.ubicacion or "",
+                salario_min=puesto_db.salario_min,
+                salario_max=puesto_db.salario_max,
+                moneda=puesto_db.moneda or "MXN",
+                tipo_contrato=tipo_contrato,
+                fecha_publicacion=puesto_db.fecha_publicacion,
+                fecha_cierre=puesto_db.fecha_cierre,
+                estado=estado
             )
             
             puesto_aggregate = PuestoAggregate(puesto=puesto)
