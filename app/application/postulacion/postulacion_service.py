@@ -62,14 +62,6 @@ class PostulacionService:
                 )
                 if puesto_info:
                     postulacion_enriquecida["puesto"] = puesto_info
-                    
-                    # Obtener información de la empresa (si tenemos el puesto)
-                    if incluir_empresa and "empresa_id" in puesto_info:
-                        empresa_info = self._obtener_info_empresa(
-                            UUID(puesto_info["empresa_id"])
-                        )
-                        if empresa_info:
-                            postulacion_enriquecida["empresa"] = empresa_info
         
         except Exception as e:
             # Log del error pero no fallar - devolver datos básicos
