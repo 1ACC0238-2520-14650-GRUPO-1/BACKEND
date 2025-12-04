@@ -117,7 +117,15 @@ async def listar_postulaciones(
                         "puesto_id": str(agg.postulacion.puesto_id),
                         "fecha_postulacion": agg.postulacion.fecha_postulacion.isoformat(),
                         "estado": agg.postulacion.estado.valor.value,
-                        "documentos_adjuntos": agg.postulacion.documentos_adjuntos
+                        "documentos_adjuntos": agg.postulacion.documentos_adjuntos,
+                        "hitos": [
+                            {
+                                "hito_id": str(hito.hito_id),
+                                "fecha": hito.fecha.isoformat(),
+                                "descripcion": hito.descripcion
+                            }
+                            for hito in agg.linea_de_tiempo.lista_hitos
+                        ]
                     }
                     for agg in resultados
                 ])
