@@ -131,8 +131,37 @@ class PostulacionRepositoryImpl(PostulacionRepository):
         """Obtiene todas las postulaciones para un puesto"""
         db = SessionLocal()
         try:
-            # Placeholder: devolver lista vacía
-            return []
+            posts_db = db.query(PostulacionModel).filter(
+                PostulacionModel.puesto_id == str(puesto_id)
+            ).all()
+            
+            resultado = []
+            for post_db in posts_db:
+                post = Postulacion(
+                    postulacion_id=UUID(post_db.postulacion_id) if post_db.postulacion_id else UUID('00000000-0000-0000-0000-000000000001'),
+                    candidato_id=UUID(post_db.cuenta_id),
+                    puesto_id=UUID(post_db.puesto_id) if post_db.puesto_id else UUID('00000000-0000-0000-0000-000000000001'),
+                    fecha_postulacion=post_db.fecha_postulacion,
+                    estado=EstadoPostulacion(post_db.estado),
+                    documentos_adjuntos=[]
+                )
+                
+                linea_tiempo = LineaDeTiempo()
+                for hito_db in post_db.hitos:
+                    hito = Hito(
+                        hito_id=UUID(f'00000000-0000-0000-0000-{hito_db.id:012d}'),
+                        fecha=hito_db.fecha,
+                        descripcion=hito_db.descripcion
+                    )
+                    linea_tiempo.lista_hitos.append(hito)
+                
+                resultado.append(PostulacionAggregate(
+                    postulacion=post,
+                    estado=post.estado,
+                    linea_de_tiempo=linea_tiempo
+                ))
+            
+            return resultado
         finally:
             db.close()
     
