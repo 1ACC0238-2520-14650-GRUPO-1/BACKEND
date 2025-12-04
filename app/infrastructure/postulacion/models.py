@@ -11,8 +11,9 @@ class PostulacionModel(Base):
     __tablename__ = "postulaciones"
     
     id = Column(Integer, primary_key=True, autoincrement=True)
+    postulacion_id = Column(String(36), nullable=False, unique=True)
     cuenta_id = Column(String(36), nullable=False)  # UUID de la cuenta
-    puesto_id = Column(Integer, nullable=False)  # Foreign key a puestos.id
+    puesto_id = Column(String(36), nullable=False)  # UUID string del puesto (antes Integer)
     fecha_postulacion = Column(DateTime, nullable=False)
     estado = Column(SQLAEnum(EstadoPostulacionEnum, native_enum=False), nullable=False)
     resultado = Column(String(100), nullable=True)
